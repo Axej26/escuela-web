@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,91 +6,74 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Send, Paperclip } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { io } from "socket.io-client";
 
 type Message = {
   id: string;
-  from: "me" | "other";
+  from: string;
   text?: string;
-  time?: string; // ISO or simple hh:mm
-  attachments?: { name: string; url?: string }[];
+  time?: string;
 };
 
-export default function Chat({
-  initialMessages = [],
-  onSendMessage,
-}: {
-  initialMessages?: Message[];
-  onSendMessage?: (text: string) => Promise<Message | void>;
-}) {
-  const [messages, setMessages] = useState<Message[]>(
-    initialMessages.length
-      ? initialMessages
-      : [
-          { id: "1", from: "other", text: "Hola! ¿En qué te puedo ayudar?", time: "09:01" },
-          { id: "2", from: "me", text: "Quiero información sobre el producto.", time: "09:02" },
-        ]
-  );
+const socket = io("http://localhost:3001");
+
+export default function Chat() {
+  const [myId, setMyId] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]); // ✅ FIX
   const [text, setText] = useState("");
+  const [targetId, setTargetId] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [sending, setSending] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-scroll a final cuando cambian mensajes
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+    socket.on("connect", () => {
+      console.log("Conectado con ID:", socket.id);
+    });
 
-  const handleSend = async () => {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    setSending(true);
-    const newMsg: Message = {
-      id: String(Date.now()),
-      from: "me",
-      text: trimmed,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    socket.on("myId", (data) => {
+      setMyId(data.id);
+      console.log("mi Id:", data.id);
+    });
+
+    socket.on("private_message", (data) => {
+      console.log("📩 Nuevo mensaje:", data);
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now().toString(), from: data.from, text: data.message },
+      ]);
+    });
+
+    return () => {
+      socket.off("private_message");
+      socket.off("myId");
     };
+  }, []);
 
-    setMessages((m) => [...m, newMsg]);
+  const sendPrivate = () => {
+    if (!targetId || !text) return;
+    socket.emit("private_message", {
+      targetSocketId: targetId,
+      message: text,
+    });
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now().toString(), from: "me", text },
+    ]);
     setText("");
-
-    try {
-      if (onSendMessage) {
-        const reply = await onSendMessage(trimmed);
-        // Si onSendMessage regresa una respuesta, agrégala
-        if (reply) setMessages((m) => [...m, reply]);
-      } else {
-        // Mock de respuesta (si no hay backend)
-        setIsTyping(true);
-        setTimeout(() => {
-          setMessages((m) => [
-            ...m,
-            {
-              id: String(Date.now() + 1),
-              from: "other",
-              text: `Respuesta automática a: "${trimmed}"`,
-              time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            },
-          ]);
-          setIsTyping(false);
-        }, 900);
-      }
-    } catch (err) {
-      // manejar errores (mostrar toast / UI)
-      console.error(err);
-    } finally {
-      setSending(false);
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      sendPrivate();
     }
   };
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messages]);
 
   return (
     <Card className="max-w-3xl mx-auto h-[70vh] flex flex-col shadow-md">
@@ -100,7 +83,12 @@ export default function Chat({
           <AvatarFallback>SO</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <h3 className="text-sm font-medium">Soporte Fuxion</h3>
+          <h3 className="text-sm font-medium">tu id: {myId}</h3>
+          <Input
+            placeholder="ID del destinatario"
+            value={targetId}
+            onChange={(e) => setTargetId(e.target.value)}
+          />
           <p className="text-xs text-muted-foreground">En línea • responde rápido</p>
         </div>
         <div className="flex gap-2">
@@ -109,7 +97,6 @@ export default function Chat({
       </div>
 
       <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
-        {/* Mensajes: contenedor scroll */}
         <div
           ref={containerRef}
           className="flex-1 overflow-auto p-4 space-y-3 bg-gradient-to-b from-white to-slate-50"
@@ -135,7 +122,13 @@ export default function Chat({
                   >
                     {m.text}
                   </div>
-                  <div className={`text-[10px] mt-1 ${m.from === "me" ? "text-right text-slate-400" : "text-left text-slate-400"}`}>
+                  <div
+                    className={`text-[10px] mt-1 ${
+                      m.from === "me"
+                        ? "text-right text-slate-400"
+                        : "text-left text-slate-400"
+                    }`}
+                  >
                     {m.time}
                   </div>
                 </div>
@@ -161,7 +154,6 @@ export default function Chat({
           </AnimatePresence>
         </div>
 
-        {/* Composer */}
         <div className="border-t p-3 bg-white">
           <div className="flex items-end gap-2">
             <button
@@ -185,17 +177,14 @@ export default function Chat({
 
             <div className="flex gap-2 items-center">
               <button
-                onClick={() => {
-                  // placeholder para adjuntar foto
-                  alert("Adjuntar — implementar carga real (S3, endpoint multipart)");
-                }}
+                onClick={() => alert("Adjuntar imagen")}
                 className="p-2 rounded-md hover:bg-slate-100"
                 title="Foto"
               >
                 <Camera size={18} />
               </button>
 
-              <Button onClick={handleSend} disabled={sending}>
+              <Button onClick={sendPrivate} disabled={sending}>
                 <div className="flex items-center gap-2">
                   <Send size={14} />
                   <span className="text-sm">Enviar</span>
@@ -208,4 +197,3 @@ export default function Chat({
     </Card>
   );
 }
-
