@@ -14,8 +14,11 @@ type Message = {
   text?: string;
   time?: string;
 };
-
-const socket = io("http://localhost:3001");
+const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+const socket = io("http://localhost:3001", {
+  query: { token }, // 💡 Envia el token en el handshake
+  transports: ["websocket"], // Opcional: fuerza uso de WebSocket puro
+});
 
 export default function Chat() {
   const [myId, setMyId] = useState("");
