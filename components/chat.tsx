@@ -22,6 +22,7 @@ const socket = io("http://localhost:3001", {
 
 export default function Chat() {
   const [myId, setMyId] = useState("");
+  const [myName, setMyName] = useState("");
   const [messages, setMessages] = useState<Message[]>([]); // ✅ FIX
   const [text, setText] = useState("");
   const [targetId, setTargetId] = useState("");
@@ -36,7 +37,9 @@ export default function Chat() {
 
     socket.on("myId", (data) => {
       setMyId(data.id);
+      setMyName(data.userName)
       console.log("mi Id:", data.id);
+      console.log("Mi nombre:",data.userName)
     });
 
     socket.on("private_message", (data) => {
@@ -86,7 +89,7 @@ export default function Chat() {
           <AvatarFallback>SO</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <h3 className="text-sm font-medium">tu id: {myId}</h3>
+          <h3 className="text-sm font-medium">mi nombre: {myName}</h3>
           <Input
             placeholder="ID del destinatario"
             value={targetId}
