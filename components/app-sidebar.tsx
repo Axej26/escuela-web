@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArchiveX, Command, File, Inbox, Send, Trash2 } from "lucide-react"
+import { ArchiveX, Command, File, Inbox, Send, Trash2, UserPlus} from "lucide-react"
 
 import { NavUser } from "@/components/nav-user"
 import { Label } from "@/components/ui/label"
@@ -56,6 +56,11 @@ const data = {
       title: "Trash",
       url: "#",
       icon: Trash2,
+      isActive: false,
+    },
+    { title: "Usuarios",
+      url: "#",
+      icon: UserPlus,
       isActive: false,
     },
   ],
