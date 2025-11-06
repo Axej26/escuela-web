@@ -1,13 +1,9 @@
 "use client"
 
 import * as React from "react"
-<<<<<<< HEAD
+
 import Link from "next/link"
 import { ArchiveX, Command, File, Inbox, Send, Trash2,MessageSquare,Calendar,UserPlus,BanknoteArrowUp } from "lucide-react"
-=======
-import { ArchiveX, Command, File, Inbox, Send, Trash2, UserPlus} from "lucide-react"
-
->>>>>>> 323dc08a14e877c8d753864e29dc4926f2b1fdfe
 import { NavUser } from "@/components/nav-user"
 import { Label } from "@/components/ui/label"
 import {
@@ -62,8 +58,9 @@ const data = {
       icon: Trash2,
       isActive: false,
     },
-    { title: "Usuarios",
-      url: "#",
+    {
+      title: "Usuarios",
+      Link: "#",
       icon: UserPlus,
       isActive: false,
     },
@@ -112,7 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {data.navMain.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     {/* 🔹 Link integrado aquí */}
-                    <Link href={item.Link}>
+                    <Link href={item.Link || "#"}>
                       <SidebarMenuButton
                         tooltip={{ children: item.title, hidden: false }}
                         onClick={() => {
