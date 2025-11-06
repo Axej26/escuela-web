@@ -1,8 +1,13 @@
 "use client"
 
 import * as React from "react"
+<<<<<<< HEAD
 import Link from "next/link"
 import { ArchiveX, Command, File, Inbox, Send, Trash2,MessageSquare,Calendar,UserPlus,BanknoteArrowUp } from "lucide-react"
+=======
+import { ArchiveX, Command, File, Inbox, Send, Trash2, UserPlus} from "lucide-react"
+
+>>>>>>> 323dc08a14e877c8d753864e29dc4926f2b1fdfe
 import { NavUser } from "@/components/nav-user"
 import { Label } from "@/components/ui/label"
 import {
@@ -55,6 +60,11 @@ const data = {
       title: "Trash",
       Link: "/trash",
       icon: Trash2,
+      isActive: false,
+    },
+    { title: "Usuarios",
+      url: "#",
+      icon: UserPlus,
       isActive: false,
     },
   ],
