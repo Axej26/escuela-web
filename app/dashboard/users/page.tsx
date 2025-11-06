@@ -1,5 +1,6 @@
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Label } from "@radix-ui/react-dropdown-menu";
+import UserRegisterForm from "@/components/form-usuarios";
 
 export default function user() {
   return (
@@ -9,7 +10,7 @@ export default function user() {
         { label: "Usuario", isPage: true },
       ]}
     >
-      <Label>user</Label>
+      <UserRegisterForm />
     </DashboardLayout>
   )
 }
