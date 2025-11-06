@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArchiveX, Command, File, Inbox, Send, Trash2 } from "lucide-react"
+import { ArchiveX, Command, File, Inbox, Send, Trash2,MessageSquare,Calendar,UserPlus,BanknoteArrowUp } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
 import { Label } from "@/components/ui/label"
 import {
@@ -28,27 +28,27 @@ const data = {
   },
   navMain: [
     {
-      title: "Inbox",
-      Link: "dashboard/chat", // 🔹 Aquí la ruta a tu página del chat
-      icon: Inbox,
+      title: "Chat",
+      Link: "/dashboard/chat", 
+      icon: MessageSquare,
       isActive: true,
     },
     {
-      title: "Drafts",
-      Link: "/drafts",
-      icon: File,
+      title: "Calendario",
+      Link: "/dashboard/calendar",
+      icon: Calendar,
       isActive: false,
     },
     {
-      title: "Sent",
-      Link: "/sent",
-      icon: Send,
+      title: "Usaurio",
+      Link: "/dashboard/user",
+      icon: UserPlus,
       isActive: false,
     },
     {
-      title: "Junk",
+      title: "Pagos",
       Link: "/junk",
-      icon: ArchiveX,
+      icon: BanknoteArrowUp,
       isActive: false,
     },
     {

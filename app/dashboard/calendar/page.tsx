@@ -1,15 +1,16 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
-import Chat from "@/components/chat"
+import { Label } from "@radix-ui/react-dropdown-menu"
 
-export default function chat() {
+export default function calendar() {
   return (
     <DashboardLayout
       breadcrumbItems={[
         { label: "All Inboxes", href: "#" },
-        { label: "Chat", isPage: true },
+        { label: "Calendario", isPage: true },
       ]}
     >
-      <Chat />
+      <Label>Calendario</Label>
     </DashboardLayout>
   )
 }
+
