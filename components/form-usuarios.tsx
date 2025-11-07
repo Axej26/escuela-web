@@ -42,14 +42,68 @@ export default function UserRegisterForm() {
     return value
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     if (formData.password !== formData.confirmPassword) {
       alert("Las contraseñas no coinciden.")
       return
     }
-    console.log("Datos enviados:", formData)
+
+    try {
+      setLoading(true)
+
+      const response = await fetch("http://localhost:3001/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_name: formData.user_name,
+          last_name: formData.last_name,
+          phone: formData.phone,
+          email: formData.email,
+          password: formData.password,
+          rol: formData.rol,
+          age: Number(formData.age),
+          direccion: formData.direccion,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        const message =
+          errorData.message || "Error desconocido al registrar el usuario"
+        throw new Error(message)
+      }
+
+      const data = await response.json()
+      console.log("✅ Usuario registrado:", data)
+      alert("Usuario registrado con éxito")
+
+      // Limpia el formulario
+      setFormData({
+        user_name: "",
+        last_name: "",
+        phone: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        age: "",
+        direccion: "",
+        rol: "",
+      })
+    } catch (err: any) {
+      console.error("❌ Error al registrar usuario:", err)
+      alert(`Error: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
   }
+
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
@@ -173,9 +227,10 @@ export default function UserRegisterForm() {
                       <SelectValue placeholder="Selecciona un rol" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Administrador</SelectItem>
-                      <SelectItem value="profesor">Profesor</SelectItem>
-                      <SelectItem value="alumno">Alumno</SelectItem>
+                      <SelectItem value="Alumno">Alumno</SelectItem>
+                      <SelectItem value="Profesor">Profesor</SelectItem>
+                      <SelectItem value="Tutor">Tutor</SelectItem>
+                      <SelectItem value="Admin">Administrador</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
@@ -196,8 +251,8 @@ export default function UserRegisterForm() {
               </FieldGroup>
             </FieldSet>
 
-            <Button type="submit" className="w-full">
-              Registrar Usuario
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Registrando..." : "Registrar Usuario"}
             </Button>
           </form>
         </CardContent>
