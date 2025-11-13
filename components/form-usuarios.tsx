@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import toast from "react-hot-toast"
+import { registrarUsuario } from "@/lib/api/user"
 import {
   Field,
   FieldDescription,
@@ -12,7 +14,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function UserRegisterForm() {
   const [formData, setFormData] = useState({
@@ -48,42 +56,26 @@ export default function UserRegisterForm() {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Las contraseñas no coinciden.")
+      toast.error("Las contraseñas no coinciden.")
       return
     }
 
     try {
       setLoading(true)
-
-      const response = await fetch("http://localhost:3001/user", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_name: formData.user_name,
-          last_name: formData.last_name,
-          phone: formData.phone,
-          email: formData.email,
-          password: formData.password,
-          rol: formData.rol,
-          age: Number(formData.age),
-          direccion: formData.direccion,
-        }),
+      const data = await registrarUsuario({
+        user_name: formData.user_name,
+        last_name: formData.last_name,
+        phone: formData.phone,
+        email: formData.email,
+        password: formData.password,
+        rol: formData.rol,
+        age: Number(formData.age),
+        direccion: formData.direccion,
       })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        const message =
-          errorData.message || "Error desconocido al registrar el usuario"
-        throw new Error(message)
-      }
+      //console.log("✅ Usuario registrado:", data)
+      toast.success("Usuario registrado con éxito")
 
-      const data = await response.json()
-      console.log("✅ Usuario registrado:", data)
-      alert("Usuario registrado con éxito")
-
-      // Limpia el formulario
       setFormData({
         user_name: "",
         last_name: "",
@@ -96,14 +88,12 @@ export default function UserRegisterForm() {
         rol: "",
       })
     } catch (err: any) {
-      console.error("❌ Error al registrar usuario:", err)
-      alert(`Error: ${err.message}`)
+      //console.error("❌ Error al registrar usuario:", err)
+      toast.error(err.message || "Error al registrar usuario")
     } finally {
       setLoading(false)
     }
   }
-
-
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
@@ -122,7 +112,6 @@ export default function UserRegisterForm() {
               </FieldLegend>
 
               <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nombre y Apellido */}
                 <Field>
                   <FieldLabel htmlFor="user_name">Nombre</FieldLabel>
                   <Input
@@ -145,7 +134,6 @@ export default function UserRegisterForm() {
                   />
                 </Field>
 
-                {/* Teléfono y Correo */}
                 <Field>
                   <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
                   <Input
@@ -175,7 +163,6 @@ export default function UserRegisterForm() {
                   />
                 </Field>
 
-                {/* Contraseña y Confirmación */}
                 <Field>
                   <FieldLabel htmlFor="password">Contraseña</FieldLabel>
                   <Input
@@ -202,7 +189,6 @@ export default function UserRegisterForm() {
                   />
                 </Field>
 
-                {/* Edad y Rol */}
                 <Field>
                   <FieldLabel htmlFor="age">Edad</FieldLabel>
                   <Input
@@ -219,7 +205,7 @@ export default function UserRegisterForm() {
                 <Field>
                   <FieldLabel>Rol de usuario</FieldLabel>
                   <Select
-                    onValueChange={(value) =>
+                    onValueChange={(value: any) =>
                       setFormData((prev) => ({ ...prev, rol: value }))
                     }
                   >
@@ -235,7 +221,6 @@ export default function UserRegisterForm() {
                   </Select>
                 </Field>
 
-                {/* Dirección (ocupa toda la fila) */}
                 <div className="md:col-span-2">
                   <Field>
                     <FieldLabel htmlFor="direccion">Dirección</FieldLabel>
