@@ -34,9 +34,6 @@ export default function TimePickerModal({ open, initialTime, onClose, onSelectTi
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
-  //-------------------------------------
-  // CORRECCIÓN: Ángulos completamente precisos
-  //-------------------------------------
   const handleClockClick = (e: React.MouseEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -45,7 +42,6 @@ export default function TimePickerModal({ open, initialTime, onClose, onSelectTi
     const dx = e.clientX - cx;
     const dy = e.clientY - cy;
 
-    // Ángulo REAL desde las 12
     let deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
     deg = (deg + 360) % 360;
 
@@ -60,9 +56,6 @@ export default function TimePickerModal({ open, initialTime, onClose, onSelectTi
     }
   };
 
-  //-------------------------------------
-  // ANGULO VISUAL DE LA MANECILLA
-  //-------------------------------------
   const needleAngle = () => {
     if (selecting === "hour") {
       return (hour % 12) * 30; // 0..330
@@ -70,9 +63,6 @@ export default function TimePickerModal({ open, initialTime, onClose, onSelectTi
     return minute * 6; // 0..354
   };
 
-  //-------------------------------------
-  // GENERAR NUMEROS DEL RELOJ
-  //-------------------------------------
   const renderHourNumbers = () => {
     return Array.from({ length: 12 }, (_, i) => {
       const num = i + 1;

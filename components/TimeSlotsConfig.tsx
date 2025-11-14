@@ -14,40 +14,30 @@ import {
   FieldDescription,
 } from "@/components/ui/field";
 
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-
 import { Plus, Trash, ChevronDown } from "lucide-react";
-
 import TimePickerModal from "@/components/TimePickerModal";
 
 type Slot = { from: string; to: string };
-type DayRow = { day: string; enabled: boolean; slots: Slot[] };
+type DayRow = { day: string; enabled: boolean; slots: Slot[]; open: boolean };
 
 const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
 export default function TimeSlotsConfig() {
-  // inicial: cada día inactivo y con 1 slot vacío
   const initial: DayRow[] = days.map((d) => ({
     day: d,
     enabled: false,
+    open: false,
     slots: [{ from: "", to: "" }],
   }));
 
   const [rows, setRows] = useState<DayRow[]>(initial);
 
-  // modal state para el TimePicker
+  // MODAL TIMEPICKER
   const [modalOpen, setModalOpen] = useState(false);
   const [activeDayIndex, setActiveDayIndex] = useState<number | null>(null);
   const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null);
   const [activeField, setActiveField] = useState<"from" | "to">("from");
 
-  // abrir modal para un campo específico
   const openTimeModal = (dayIdx: number, slotIdx: number, field: "from" | "to") => {
     setActiveDayIndex(dayIdx);
     setActiveSlotIndex(slotIdx);
@@ -55,7 +45,6 @@ export default function TimeSlotsConfig() {
     setModalOpen(true);
   };
 
-  // recibir hora seleccionada desde el modal
   const handleSelectTime = (time24: string) => {
     if (activeDayIndex === null || activeSlotIndex === null) return;
     const copy = [...rows];
@@ -63,21 +52,24 @@ export default function TimeSlotsConfig() {
     setRows(copy);
   };
 
-  // toggle on/off día
   const toggleDay = (index: number) => {
     const copy = [...rows];
     copy[index].enabled = !copy[index].enabled;
     setRows(copy);
   };
 
-  // agregar intervalo (icono +) dentro del día
+  const toggleDropdown = (index: number) => {
+    const copy = [...rows];
+    copy[index].open = !copy[index].open;
+    setRows(copy);
+  };
+
   const addSlot = (dayIndex: number) => {
     const copy = [...rows];
     copy[dayIndex].slots.push({ from: "", to: "" });
     setRows(copy);
   };
 
-  // eliminar intervalo (icono trash)
   const removeSlot = (dayIndex: number, slotIndex: number) => {
     const copy = [...rows];
     copy[dayIndex].slots.splice(slotIndex, 1);
@@ -85,26 +77,11 @@ export default function TimeSlotsConfig() {
     setRows(copy);
   };
 
-  // actualizar nombre de día (select) u otros campos simples
-  const updateDayField = (dayIndex: number, field: keyof DayRow | "from" | "to", value: any, slotIndex?: number) => {
-    const copy = [...rows];
-    if (field === "from" || field === "to") {
-      if (typeof slotIndex === "number") {
-        copy[dayIndex].slots[slotIndex][field] = value;
-      }
-    } else {
-      // only day / enabled / slots - we only use day updates from select
-      // @ts-ignore
-      copy[dayIndex][field] = value;
-    }
-    setRows(copy);
-  };
-
-  // guardar todo en backend (POST por cada intervalo activo)
   const saveAll = async () => {
     try {
       for (const row of rows) {
         if (!row.enabled) continue;
+
         for (const s of row.slots) {
           if (!s.from || !s.to) {
             toast.error(`Completa todos los horarios de ${row.day}`);
@@ -114,6 +91,7 @@ export default function TimeSlotsConfig() {
             toast.error(`La hora final debe ser mayor que la inicial en ${row.day}`);
             return;
           }
+
           await fetch("http://localhost:3000/timeslots", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -125,6 +103,7 @@ export default function TimeSlotsConfig() {
           });
         }
       }
+
       toast.success("Horarios guardados");
     } catch (err) {
       console.error(err);
@@ -136,7 +115,6 @@ export default function TimeSlotsConfig() {
     <>
       <Toaster />
 
-      {/* TimePicker Modal (reloj analógico) */}
       <TimePickerModal
         open={modalOpen}
         initialTime={
@@ -154,26 +132,38 @@ export default function TimeSlotsConfig() {
         <FieldGroup>
           {rows.map((row, dayIdx) => (
             <div key={row.day} className="border rounded-lg p-4 space-y-3">
-              {/* header: día + switch */}
-              <div className="flex items-center justify-between">
+              
+              {/* -------- HEADER DÍA -------- */}
+              <div
+                className="flex items-center justify-between cursor-pointer"
+                onClick={() => toggleDropdown(dayIdx)}
+              >
                 <div className="flex items-center gap-3">
                   <h3 className="font-medium">{row.day}</h3>
                   <FieldDescription>{row.enabled ? "Activo" : "Inactivo"}</FieldDescription>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <Switch checked={row.enabled} onCheckedChange={() => toggleDay(dayIdx)} />
-                    <span className="text-sm text-muted-foreground">Activar</span>
-                  </div>
+                <div className="flex items-center gap-4">
+                  <Switch
+                    checked={row.enabled}
+                    onCheckedChange={() => toggleDay(dayIdx)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+
+                  <ChevronDown
+                    className={`h-5 w-5 transition-transform ${
+                      row.open ? "rotate-180" : ""
+                    }`}
+                  />
                 </div>
               </div>
 
-              {/* slots (intervalos) */}
-              {row.enabled && (
-                <div className="space-y-3">
+              {/* ---------- CONTENIDO OCULTO (SLOTS) ---------- */}
+              {row.open && row.enabled && (
+                <div className="space-y-3 pt-3 border-t">
                   {row.slots.map((s, slotIdx) => (
                     <div key={slotIdx} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                      
                       {/* Desde */}
                       <Field>
                         <FieldLabel>Desde</FieldLabel>
@@ -198,25 +188,23 @@ export default function TimeSlotsConfig() {
                         />
                       </Field>
 
-                      {/* acciones iconos: añadir intervalo (solo en la última columna) */}
+                      {/* Acciones */}
                       <div className="col-span-1 md:col-span-2 flex gap-2 justify-end items-center">
-                        {/* Agregar intervalo (icono) */}
                         <Button
                           size="icon"
                           variant="ghost"
                           onClick={() => addSlot(dayIdx)}
-                          aria-label={`Agregar intervalo a ${row.day}`}
+                          aria-label="Agregar intervalo"
                           className="rounded-full"
                         >
                           <Plus className="h-5 w-5" />
                         </Button>
 
-                        {/* Eliminar intervalo (si hay más de 1) */}
                         <Button
                           size="icon"
                           variant="destructive"
                           onClick={() => removeSlot(dayIdx, slotIdx)}
-                          aria-label={`Eliminar intervalo de ${row.day}`}
+                          aria-label="Eliminar intervalo"
                           className="rounded-full"
                         >
                           <Trash className="h-5 w-5" />
@@ -226,14 +214,19 @@ export default function TimeSlotsConfig() {
                   ))}
                 </div>
               )}
+
+              {/* Si está abierto pero el día está apagado */}
+              {row.open && !row.enabled && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Activa el día para configurar horarios.
+                </p>
+              )}
             </div>
           ))}
         </FieldGroup>
 
-        <div className="flex items-center justify-between">
-          <div className="flex gap-3">
-            <Button onClick={saveAll}>Guardar todo</Button>
-          </div>
+        <div className="flex items-center justify-end">
+          <Button onClick={saveAll}>Guardar todo</Button>
         </div>
       </div>
     </>
