@@ -41,8 +41,8 @@ const data = {
       isActive: false,
     },
     {
-      title: "Usaurio",
-      Link: "/dashboard/user",
+      title: "Usaurios",
+      Link: "/dashboard/users",
       icon: UserPlus,
       isActive: false,
     },
@@ -56,12 +56,6 @@ const data = {
       title: "Trash",
       Link: "/trash",
       icon: Trash2,
-      isActive: false,
-    },
-    {
-      title: "Usuarios",
-      Link: "#",
-      icon: UserPlus,
       isActive: false,
     },
   ],
