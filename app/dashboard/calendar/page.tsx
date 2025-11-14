@@ -1,5 +1,6 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Label } from "@radix-ui/react-dropdown-menu"
+import TimeSlotsConfig from "@/components/TimeSlotsConfig";
+
 
 export default function calendar() {
   return (
@@ -9,7 +10,7 @@ export default function calendar() {
         { label: "Calendario", isPage: true },
       ]}
     >
-      <Label>Calendario</Label>
+      <TimeSlotsConfig />
     </DashboardLayout>
   )
 }
